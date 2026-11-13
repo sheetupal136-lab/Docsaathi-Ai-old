@@ -181,11 +181,12 @@ export async function analyzeDocumentApi(
     }
 
     const json = await res.json();
-    const parsed = validateAnalysisResponse(json);
+    const normalized = typeof json === "object" && json !== null ? { success: true, ...json } : json;
+    const parsed = validateAnalysisResponse(normalized);
 
     if (!parsed.success) {
       console.warn("Backend response format warning:", parsed.error);
-      return json as AnalysisResponse;
+      return normalized as AnalysisResponse;
     }
 
     return parsed.data as AnalysisResponse;

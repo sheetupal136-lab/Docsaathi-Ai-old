@@ -38,6 +38,7 @@ class Document(models.Model):
         """Constructs full frontend-compatible analysis dictionary from relational records."""
         if not hasattr(self, 'analysis') or self.analysis is None:
             return {
+                "success": False,
                 "documentId": self.id,
                 "originalFilename": self.original_filename,
                 "fileHash": self.file_hash,
@@ -87,6 +88,7 @@ class Document(models.Model):
             })
 
         return {
+            "success": True,
             "documentId": self.id,
             "fileHash": self.file_hash,
             "fileSize": self.file_size,
