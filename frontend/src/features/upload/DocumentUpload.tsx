@@ -20,6 +20,7 @@ import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { DocumentCategory, SupportedLanguage } from "@/types/api";
 import { MOCK_NOTICES } from "@/lib/mockService";
+import { setCustomApiBaseUrl } from "@/lib/api";
 
 const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
 const ALLOWED_MIME_TYPES = [
@@ -355,6 +356,43 @@ export function DocumentUpload({ onAnalysisComplete }: DocumentUploadProps) {
                 <p className="text-[11px] text-red-500 font-mono">
                   Details: {analysisError.details}
                 </p>
+              )}
+              {analysisError?.message?.includes("Unable to reach backend") && (
+                <div className="pt-2.5 space-y-2">
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => {
+                      setCustomApiBaseUrl("https://docsaathi-backend.onrender.com");
+                      window.location.reload();
+                    }}
+                    className="text-xs py-1.5 px-3 bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    ⚡ Connect to https://docsaathi-backend.onrender.com
+                  </Button>
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      placeholder="Enter custom Render backend URL (e.g. https://docsaathi-backend.onrender.com)"
+                      id="custom-backend-url-input"
+                      className="text-xs px-2.5 py-1.5 rounded-lg border border-red-300 bg-white text-slate-800 flex-1 min-w-0 font-mono"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const input = document.getElementById("custom-backend-url-input") as HTMLInputElement;
+                        if (input && input.value) {
+                          setCustomApiBaseUrl(input.value);
+                          window.location.reload();
+                        }
+                      }}
+                      className="text-xs shrink-0 border-red-300 text-red-700 hover:bg-red-100"
+                    >
+                      Save & Reload
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           </div>

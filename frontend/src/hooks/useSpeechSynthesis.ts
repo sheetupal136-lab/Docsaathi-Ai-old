@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { SupportedLanguage } from "@/types/api";
+import { getApiBaseUrl } from "@/lib/api";
 
 const BCP47_LANGUAGE_MAP: Record<SupportedLanguage, string[]> = {
   en: ["en-IN", "en-US", "en-GB", "en"],
@@ -20,9 +21,6 @@ const BCP47_LANGUAGE_MAP: Record<SupportedLanguage, string[]> = {
   ks: ["ks-IN", "ur-IN", "ks"],
   sa: ["sa-IN", "hi-IN", "sa"],
 };
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:8000";
 
 export function useSpeechSynthesis() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -244,13 +242,14 @@ export function useSpeechSynthesis() {
       setIsLoading(true);
 
       // Determine Audio Stream URL
+      const baseUrl = getApiBaseUrl();
       let streamUrl: string;
       if (documentId && documentId.startsWith("doc-")) {
-        streamUrl = `${API_BASE_URL}/api/documents/${documentId}/audio/`;
+        streamUrl = `${baseUrl}/api/documents/${documentId}/audio/`;
       } else {
         // Use generic TTS endpoint with encoded text
         const safeText = encodeURIComponent(text.slice(0, 400));
-        streamUrl = `${API_BASE_URL}/api/tts/?language=${encodeURIComponent(lang)}&text=${safeText}`;
+        streamUrl = `${baseUrl}/api/tts/?language=${encodeURIComponent(lang)}&text=${safeText}`;
       }
 
       // Try High-Fidelity HTML5 Audio

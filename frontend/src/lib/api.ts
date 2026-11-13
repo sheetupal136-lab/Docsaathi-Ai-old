@@ -12,12 +12,53 @@ import {
 } from "./validations";
 import { getMockAnalysis, getMockAnswer } from "./mockService";
 
-const rawBaseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:8000";
-const API_BASE_URL =
-  rawBaseUrl.startsWith("http://") || rawBaseUrl.startsWith("https://")
-    ? rawBaseUrl
-    : `https://${rawBaseUrl}`;
+export function getApiBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    try {
+      const custom = localStorage.getItem("docsaathi_api_url");
+      if (custom && custom.trim()) {
+        let c = custom.trim().replace(/\/$/, "");
+        return c.startsWith("http://") || c.startsWith("https://") ? c : `https://${c}`;
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  let raw =
+    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:8000";
+
+  // If Render passed an internal service name without TLD (e.g. "docsaathi-backend")
+  if (!raw.includes(".") && !raw.includes("localhost") && !raw.includes("127.0.0.1")) {
+    raw = `${raw}.onrender.com`;
+  }
+
+  return raw.startsWith("http://") || raw.startsWith("https://")
+    ? raw
+    : `https://${raw}`;
+}
+
+export function setCustomApiBaseUrl(url: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (!url || !url.trim()) {
+      localStorage.removeItem("docsaathi_api_url");
+    } else {
+      let c = url.trim().replace(/\/$/, "");
+      if (!c.startsWith("http://") && !c.startsWith("https://")) {
+        c = `https://${c}`;
+      }
+      localStorage.setItem("docsaathi_api_url", c);
+    }
+  } catch {
+    // Ignore
+  }
+}
+
+export const API_BASE_URL = {
+  toString: () => getApiBaseUrl(),
+  valueOf: () => getApiBaseUrl(),
+};
 
 const SESSION_KEY = "docsaathi_session_id";
 
