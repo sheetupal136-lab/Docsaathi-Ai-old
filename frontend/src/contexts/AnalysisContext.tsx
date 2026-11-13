@@ -128,8 +128,16 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
 
   const clearAnalysisError = () => setAnalysisError(null);
 
+  // Mock notice loader for testing & UI preview
+  const loadPresetNotice = useCallback((presetId: string) => {
+    const mock = getMockAnalysis(presetId, language);
+    setAnalysis(mock);
+    setCompletedTasks({});
+    setChatMessages([]);
+  }, [language]);
+
   // Load a document from backend DB by ID
-  const loadDocument = async (documentId: string) => {
+  const loadDocument = useCallback(async (documentId: string) => {
     // If mock ID, load mock preset
     if (documentId.startsWith("mock-")) {
       const presetId = documentId.replace("mock-", "");
@@ -201,25 +209,28 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, [loadPresetNotice]);
 
   // Delete document
-  const deleteDocument = async (documentId: string) => {
+  const deleteDocument = useCallback(async (documentId: string) => {
     try {
       await deleteDocumentApi(documentId);
-      if (analysis && analysis.documentId === documentId) {
-        setAnalysis(null);
-        setCompletedTasks({});
-        setChatMessages([]);
-      }
+      setAnalysis((prev) => {
+        if (prev && prev.documentId === documentId) {
+          setCompletedTasks({});
+          setChatMessages([]);
+          return null;
+        }
+        return prev;
+      });
       await refreshDocumentsList();
     } catch (err: unknown) {
       console.error("Failed to delete document:", err);
     }
-  };
+  }, [refreshDocumentsList]);
 
   // Run fresh analysis on uploaded file
-  const runAnalysis = async (targetLang?: SupportedLanguage, category?: string): Promise<boolean> => {
+  const runAnalysis = useCallback(async (targetLang?: SupportedLanguage, category?: string): Promise<boolean> => {
     if (!file) {
       setAnalysisError({
         message: "No document selected. Please select a PDF or image file first.",
@@ -270,27 +281,30 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       clearInterval(stepInterval);
       setIsAnalyzing(false);
     }
-  };
+  }, [file, isAnalyzing, language, refreshDocumentsList]);
 
   // Toggle checklist item with DB persistence
-  const toggleTask = (taskId: string) => {
-    const nextState = !completedTasks[taskId];
-    setCompletedTasks((prev) => ({
-      ...prev,
-      [taskId]: nextState,
-    }));
+  const toggleTask = useCallback((taskId: string) => {
+    setCompletedTasks((prev) => {
+      const nextState = !prev[taskId];
+      const updated = {
+        ...prev,
+        [taskId]: nextState,
+      };
 
-    // If active document is saved in backend, persist the change to Django database
-    if (analysis && analysis.documentId && !analysis.documentId.startsWith("mock-")) {
-      toggleChecklistItemApi(analysis.documentId, taskId, nextState)
-        .then(() => refreshDocumentsList())
-        .catch((e) => console.warn("Failed to persist checklist state:", e));
-    }
-  };
+      // Persist to backend if documentId is valid
+      if (analysis && analysis.documentId && !analysis.documentId.startsWith("mock-")) {
+        toggleChecklistItemApi(analysis.documentId, taskId, nextState)
+          .then(() => refreshDocumentsList())
+          .catch((e) => console.warn("Failed to persist checklist state:", e));
+      }
+      return updated;
+    });
+  }, [analysis, refreshDocumentsList]);
 
-  const resetChecklist = () => {
+  const resetChecklist = useCallback(() => {
     setCompletedTasks({});
-  };
+  }, []);
 
   const checklistItems: ActionChecklistItem[] = analysis?.actionChecklist || [];
   const totalTasksCount = checklistItems.length;
@@ -303,7 +317,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       : 0;
 
   // Ask question with DB persistence
-  const askQuestion = async (question: string) => {
+  const askQuestion = useCallback(async (question: string) => {
     if (!analysis || !question.trim()) return;
 
     const nowStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -350,15 +364,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsAsking(false);
     }
-  };
-
-  // Mock notice loader for testing & UI preview
-  const loadPresetNotice = (presetId: string) => {
-    const mock = getMockAnalysis(presetId, language);
-    setAnalysis(mock);
-    setCompletedTasks({});
-    setChatMessages([]);
-  };
+  }, [analysis, language]);
 
   return (
     <AnalysisContext.Provider

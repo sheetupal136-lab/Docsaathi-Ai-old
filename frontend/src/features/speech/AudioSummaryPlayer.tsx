@@ -58,9 +58,10 @@ export function AudioSummaryPlayer() {
 
   if (!analysis) return null;
 
+  const safeKeyPoints = Array.isArray(analysis.keyPoints) ? analysis.keyPoints : [];
   const scriptToRead =
     analysis.audioScript ||
-    `${analysis.title || analysis.documentType}. ${analysis.simpleSummary}. ${analysis.keyPoints.join(". ")}`;
+    `${analysis.title || analysis.documentType || "Document"}. ${analysis.simpleSummary || ""}. ${safeKeyPoints.join(". ")}`;
 
   const handlePlayToggle = () => {
     if (isPlaying) {

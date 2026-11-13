@@ -52,17 +52,19 @@ export function RecentDocuments({
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const hasAutoLoadedRef = React.useRef(false);
 
   // Auto-select the first real document from SQLite DB if nothing is active
   useEffect(() => {
-    if (!analysis && savedDocuments.length > 0 && !selectedDocId) {
+    if (!hasAutoLoadedRef.current && !analysis && savedDocuments.length > 0 && !selectedDocId) {
+      hasAutoLoadedRef.current = true;
       const firstDoc = savedDocuments[0];
       setSelectedDocId(firstDoc.documentId);
       loadDocument(firstDoc.documentId);
-    } else if (analysis) {
+    } else if (analysis && selectedDocId !== analysis.documentId) {
       setSelectedDocId(analysis.documentId);
     }
-  }, [analysis, savedDocuments, selectedDocId, loadDocument]);
+  }, [analysis, savedDocuments, selectedDocId]);
 
   const handleSelectDoc = (docId: string) => {
     setSelectedDocId(docId);
