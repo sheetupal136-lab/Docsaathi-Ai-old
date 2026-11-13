@@ -2,6 +2,8 @@
 
 > **"Understand Documents. Know What to Do Next."**
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sheetupal136-lab/Docsaathi-Ai)
+
 DocSaathi AI is an intelligent, multilingual document-understanding assistant designed for Bharat. It converts complex college notices, scholarship brochures, recruitment advertisements, and government scheme circulars into crystal-clear explanations and an interactive, actionable checklist in 15 Indian languages with authentic regional cultural themes.
 
 ---
