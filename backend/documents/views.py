@@ -28,6 +28,70 @@ from .tts_service import generate_multilingual_audio
 
 logger = logging.getLogger(__name__)
 
+class RootIndexView(APIView):
+    """
+    GET / - Friendly landing page and health summary for the DocSaathi AI Backend.
+    """
+    def get(self, request):
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocSaathi AI — Backend Service</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 32px; max-width: 600px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+    .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 12px; border-radius: 9999px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+    .badge::before { content: ""; width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
+    h1 { font-size: 26px; font-weight: 800; margin: 0 0 8px; color: #fff; }
+    p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px; }
+    .links { display: flex; flex-direction: column; gap: 12px; }
+    .btn { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #334155; color: #f8fafc; text-decoration: none; border-radius: 10px; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+    .btn:hover { background: #475569; transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, #ea580c, #c2410c); }
+    .btn-primary:hover { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .endpoint { font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Backend Service Operational</div>
+    <h1>DocSaathi AI Backend API</h1>
+    <p>The Django REST Framework backend service is live, connected to Google Gemini AI, and serving the DocSaathi multilingual frontend.</p>
+    <div class="links">
+      <a href="https://docsaathi-frontend.onrender.com" class="btn btn-primary">
+        <span>🚀 Open DocSaathi AI Web Application</span>
+        <span>&rarr;</span>
+      </a>
+      <a href="/api/health/" class="btn">
+        <span>🩺 Check API Health Status <span class="endpoint">/api/health/</span></span>
+        <span>&rarr;</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>"""
+            return HttpResponse(html_content, content_type="text/html; charset=utf-8")
+        
+        return Response({
+            "status": "healthy",
+            "service": "DocSaathi AI Backend Service",
+            "message": "Welcome to DocSaathi AI REST API. Access endpoints under /api/.",
+            "frontendUrl": "https://docsaathi-frontend.onrender.com",
+            "healthCheckUrl": "/api/health/",
+            "endpoints": {
+                "health": "/api/health/",
+                "analyze": "/api/documents/analyze/",
+                "ask": "/api/documents/ask/",
+                "audio": "/api/documents/<document_id>/audio/",
+                "tts": "/api/tts/",
+                "documents": "/api/documents/"
+            }
+        }, status=status.HTTP_200_OK)
+
+
 class HealthCheckView(APIView):
     """GET /api/health/ - Checks backend service health and Gemini configuration."""
     def get(self, request):
